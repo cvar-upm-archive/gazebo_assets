@@ -57,6 +57,10 @@ function parse_drone_config() {
 function run_gzserver() {
 	world=$1
 
+	if [ "$world" == "none" ] && [[ -n "$PX4_SITL_WORLD" ]]; then
+		world="$PX4_SITL_WORLD"
+	fi
+
 	# Check if world file exist, else empty world
 	if [[ -f $world ]]; then
 		world_path="$world"
@@ -146,6 +150,7 @@ function spawn_model() {
 		model="iris"
 	fi
 
+	# TODO not working on custom iris models
 	modelpath="$(get_model_path ${model})"
 	python3 ${src_path}/Tools/sitl_gazebo/scripts/jinja_gen.py ${modelpath}/${model}/${model}.sdf.jinja ${src_path}/Tools/sitl_gazebo --mavlink_tcp_port $((4560+${N})) --mavlink_udp_port $((14560+${N})) --mavlink_id $((1+${N})) --gst_udp_port $((5600+${N})) --video_uri $((5600+${N})) --mavlink_cam_udp_port $((14530+${N})) --output-file /tmp/${model}_${N}.sdf
 
@@ -227,6 +232,8 @@ echo sitl_bin: $sitl_bin
 echo config: $config_path
 echo src_path: $src_path
 echo build_path: $build_path
+
+# TODO: flag on single drone to use PX4_NO_FOLLOW_MODE
 
 # Parse config file
 declare world_path drones
