@@ -56,6 +56,7 @@ function parse_drone_config() {
 
 function run_gzserver() {
 	world=$1
+	world=$(eval echo $world)
 
 	if [ "$world" == "none" ] && [[ -n "$PX4_SITL_WORLD" ]]; then
 		world="$PX4_SITL_WORLD"
