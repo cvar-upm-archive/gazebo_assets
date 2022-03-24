@@ -89,10 +89,11 @@ function run_gzserver() {
 function run_gzclient() {
 	px4_follow_mode=$1
 	# Disable follow mode
-	if [[ "$px4_follow_mode" == "1" ]]; then
-		follow_mode="--gui-client-plugin libgazebo_user_camera_plugin.so"
+	if [[ $px4_follow_mode -eq 1 ]]; then
+		# FIXME: follow_mode not working
+		follow_mode_="--gui-client-plugin libgazebo_user_camera_plugin.so"
 	else
-		follow_mode=""
+		follow_mode_=""
 	fi
 
 	# gzserver needs to be running to avoid a race. Since the launch
@@ -105,7 +106,7 @@ function run_gzclient() {
 	# done
 
 	echo "Starting gazebo client"
-	nice -n 20 gzclient $verbose $follow_mode  # &  # TODO
+	nice -n 20 gzclient $verbose $follow_mode_  # &  # TODO
 	GUI_PID=$!
 }
 
@@ -151,9 +152,9 @@ function spawn_model() {
 		model="iris"
 	fi
 
-	# TODO not working on custom iris models
 	modelpath="$(get_model_path ${model})"
-	python3 ${src_path}/Tools/sitl_gazebo/scripts/jinja_gen.py ${modelpath}/${model}/${model}.sdf.jinja ${src_path}/Tools/sitl_gazebo --mavlink_tcp_port $((4560+${N})) --mavlink_udp_port $((14560+${N})) --mavlink_id $((1+${N})) --gst_udp_port $((5600+${N})) --video_uri $((5600+${N})) --mavlink_cam_udp_port $((14530+${N})) --output-file /tmp/${model}_${N}.sdf
+	DIR_SCRIPT="${0%/*}"
+	python3 ${DIR_SCRIPT}/jinja_gen.py ${modelpath}/${model}/${model}.sdf.jinja ${DIR_SCRIPT}/.. --mavlink_tcp_port $((4560+${N})) --mavlink_udp_port $((14560+${N})) --mavlink_id $((1+${N})) --gst_udp_port $((5600+${N})) --video_uri $((5600+${N})) --mavlink_cam_udp_port $((14530+${N})) --output-file /tmp/${model}_${N}.sdf
 
 	gz model $verbose --spawn-file="/tmp/${model}_${N}.sdf" --model-name=${model}_${N} -x ${x} -y ${y} -z ${z} -Y ${Y} 2>&1
 }
@@ -234,13 +235,18 @@ echo config: $config_path
 echo src_path: $src_path
 echo build_path: $build_path
 
-# TODO: flag on single drone to use PX4_NO_FOLLOW_MODE
-
 # Parse config file
 declare world_path drones
 parse_config_script $config_path world_path drones
 echo drones: ${drones[*]}
 echo world_path: $world_path
+
+# Follow mode only available with one drone
+if [[ ${#drones[@]} -gt 1 ]]; then
+	follow_mode=""
+else
+	follow_mode=$PX4_FOLLOW_MODE
+fi
 
 # To disable user input
 if [[ -n "$VERBOSE_SIM" ]]; then
@@ -269,7 +275,7 @@ spawn_drones $drones
 if [[ -n "$HEADLESS" ]]; then
 	echo "not running gazebo gui"
 else
-	run_gzclient $PX4_NO_FOLLOW_MODE
+	run_gzclient $follow_mode
 fi
 
 kill -9 $SIM_PID
