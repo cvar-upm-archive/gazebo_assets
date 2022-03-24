@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 # TODO function variable into local variable
+# TODO external MAYUSC internal minusc
 
 function cleanup() {
 	pkill -x px4  || true
@@ -106,7 +107,7 @@ function run_gzclient() {
 	# done
 
 	echo "Starting gazebo client"
-	nice -n 20 gzclient $verbose $follow_mode_  # &  # TODO
+	nice -n 20 gzclient $verbose $follow_mode_  # &  # TODO fails on headless
 	GUI_PID=$!
 }
 
@@ -154,7 +155,7 @@ function spawn_model() {
 
 	modelpath="$(get_model_path ${model})"
 	DIR_SCRIPT="${0%/*}"
-	python3 ${DIR_SCRIPT}/jinja_gen.py ${modelpath}/${model}/${model}.sdf.jinja ${DIR_SCRIPT}/.. --mavlink_tcp_port $((4560+${N})) --mavlink_udp_port $((14560+${N})) --mavlink_id $((1+${N})) --gst_udp_port $((5600+${N})) --video_uri $((5600+${N})) --mavlink_cam_udp_port $((14530+${N})) --output-file /tmp/${model}_${N}.sdf
+	python3 ${DIR_SCRIPT}/jinja_gen.py ${modelpath}/${model}/${model}.sdf.jinja ${modelpath}/.. --mavlink_tcp_port $((4560+${N})) --mavlink_udp_port $((14560+${N})) --mavlink_id $((1+${N})) --gst_udp_port $((5600+${N})) --video_uri $((5600+${N})) --mavlink_cam_udp_port $((14530+${N})) --output-file /tmp/${model}_${N}.sdf
 
 	gz model $verbose --spawn-file="/tmp/${model}_${N}.sdf" --model-name=${model}_${N} -x ${x} -y ${y} -z ${z} -Y ${Y} 2>&1
 }
