@@ -86,9 +86,13 @@ Example of a config file:
     export PX4_HOME_LON=-16.503213  # degrees
     export PX4_HOME_ALT=0  # meters
     ```
-- Change PX4 vehicle (TBD)
+- Change PX4 vehicle (TBD):
     ```bash
     export VEHICLE=iris  # typhoon
+    ```
+- Verbose mode:
+    ```bash
+    export VERBOSE_SIM=1
     ```
 
 ## EXAMPLES
