@@ -100,11 +100,6 @@ function run_gzclient() {
 	# gzserver needs to be running to avoid a race. Since the launch
 	# is putting it into the background we need to avoid it by backing off
 	sleep 3
-	# TODO: not working
-	# while gz stats 2>&1 | grep -q "An instance of Gazebo is not running."; do
-	# 	echo "gzserver not ready yet, trying again!"
-	# 	sleep 1
-	# done
 
 	echo "Starting gazebo client"
 	nice -n 20 gzclient $verbose $follow_mode_  # &  # TODO fails on headless
