@@ -8,6 +8,7 @@ function cleanup() {
 	pkill -x px4  || true
 	pkill gzclient
 	pkill gzserver
+	pkill gz
 }
 
 function setup_gazebo() {
