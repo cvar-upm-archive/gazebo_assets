@@ -28,7 +28,7 @@ export PX4_HOME_ALT=0
 export PX4_FOLLOW_MODE=1
 
 # Set world
-export PX4_SITL_WORLD="${AEROSTACK2_STACK}/simulation/gazebo_assets/worlds/frames.world"
+export PX4_SITL_WORLD="frames"
 
 # Set drone
 export UAV_MODEL

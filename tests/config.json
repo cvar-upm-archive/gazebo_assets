@@ -1,5 +1,5 @@
 {
-    "world": "${AEROSTACK2_STACK}/simulation/gazebo_assets/worlds/frames.world",
+    "world": "frames",
     "0": {
         "model": "iris_fpv",
         "pose": [ 0.0, 0.0, 0.0, 1.57 ]

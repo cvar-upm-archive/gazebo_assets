@@ -4,6 +4,7 @@
 # TODO external MAYUSC internal minusc
 
 function cleanup() {
+	# TODO clean gz model spawn
 	pkill -x px4  || true
 	pkill gzclient
 	pkill gzserver
@@ -63,14 +64,18 @@ function run_gzserver() {
 		world="$PX4_SITL_WORLD"
 	fi
 
-	# Check if world file exist, else empty world
+	# Check if world file exist, else look for world
 	if [[ -f $world ]]; then
 		world_path="$world"
 	else
-		world="none"
+		target="${world}.world"
+		world_path="$(get_path ${target} ${GAZEBO_RESOURCE_PATH})"
 	fi
 
-	if [ "$world" == "none" ]; then
+	# Check if world_path exist, else empty
+	if [[ -d $world_path ]]; then
+		world_path="${world_path}/${target}"
+	else
 		echo "empty world, setting empty.world as default"
 		world_path="${src_path}/Tools/sitl_gazebo/worlds/empty.world"
 	fi
@@ -106,26 +111,27 @@ function run_gzclient() {
 	GUI_PID=$!
 }
 
-function get_model_path() {
-	model=$1
+function get_path() {
+	target=$1
+	path_list=$2
 
-	# Check all paths in ${GAZEBO_MODEL_PATH} for specified model
+	# Check all paths in path_list for specified model
 	IFS_bak=$IFS
 	IFS=":"
-	for possible_model_path in ${GAZEBO_MODEL_PATH}; do
-		if [ -z $possible_model_path ]; then
+	for possible_path in ${path_list}; do
+		if [ -z $possible_path ]; then
 			continue
 		fi
 		# trim \r from path
-		possible_model_path=$(echo $possible_model_path | tr -d '\r')
-		if test -f "${possible_model_path}/${model}/${model}.sdf" ; then
-			modelpath=$possible_model_path
+		possible_path=$(echo $possible_path | tr -d '\r')
+		if test -f "${possible_path}/${target}" ; then
+			path=$possible_path
 			break
 		fi
 	done
 	IFS=$IFS_bak
 
-	echo $modelpath
+	echo $path
 }
 
 function spawn_model() {
@@ -148,9 +154,10 @@ function spawn_model() {
 		model="iris"
 	fi
 
-	modelpath="$(get_model_path ${model})"
+	target="${model}/${model}.sdf"
+	modelpath="$(get_path ${target} ${GAZEBO_MODEL_PATH})"
 	DIR_SCRIPT="${0%/*}"
-	python3 ${DIR_SCRIPT}/jinja_gen.py ${modelpath}/${model}/${model}.sdf.jinja ${modelpath}/.. --mavlink_tcp_port $((4560+${N})) --mavlink_udp_port $((14560+${N})) --mavlink_id $((1+${N})) --gst_udp_port $((5600+${N})) --video_uri $((5600+${N})) --mavlink_cam_udp_port $((14530+${N})) --output-file /tmp/${model}_${N}.sdf
+	python3 ${DIR_SCRIPT}/jinja_gen.py ${modelpath}/${target}.jinja ${modelpath}/.. --mavlink_tcp_port $((4560+${N})) --mavlink_udp_port $((14560+${N})) --mavlink_id $((1+${N})) --gst_udp_port $((5600+${N})) --video_uri $((5600+${N})) --mavlink_cam_udp_port $((14530+${N})) --output-file /tmp/${model}_${N}.sdf
 
 	gz model $verbose --spawn-file="/tmp/${model}_${N}.sdf" --model-name=${model}_${N} -x ${x} -y ${y} -z ${z} -Y ${Y} 2>&1
 }
@@ -183,6 +190,7 @@ function run_sitl() {
 
 	sitl_command="\"$sitl_bin\" -i $N $no_pxh \"$build_path\"/etc -s etc/init.d-posix/rcS -w $working_dir &"
 	test_test___="\"$sitl_bin\" -i $N $no_pxh \"$build_path\"/etc -s etc/init.d-posix/rcS -w sitl_${MODEL}_${N} >out.log 2>err.log &"
+	# TODO verbose
 
 	echo SITL COMMAND: $sitl_command
 	eval $sitl_command
