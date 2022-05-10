@@ -4,7 +4,6 @@
 # TODO external MAYUSC internal minusc
 
 function cleanup() {
-	# TODO clean gz model spawn
 	pkill -x px4  || true
 	pkill gzclient
 	pkill gzserver
@@ -211,7 +210,6 @@ function spawn_drones() {
 
 		spawn_model $n ${drone_array[*]}
 		run_sitl $n $VEHICLE
-
 		n=$(($n + 1))
 	done
 }
@@ -272,6 +270,7 @@ source "$src_path/Tools/setup_gazebo.bash" "${src_path}" "${build_path}"
 setup_gazebo
 
 run_gzserver $world_path
+sleep 2
 
 # Do not exit on failure now from here on because we want the complete cleanup
 set +e
