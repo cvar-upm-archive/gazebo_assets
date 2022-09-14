@@ -84,12 +84,15 @@ function run_gzserver() {
 
 	# To use gazebo_ros ROS2 plugins
 	if [[ -n "$ROS_VERSION" ]] && [ "$ROS_VERSION" == "2" ]; then
-		ros_args="-s libgazebo_ros_init.so -s libgazebo_ros_factory.so"
+	# ros_args="-s libgazebo_ros_init.so -s libgazebo_ros_factory.so"
+		# ros_args="-s libgazebo_ros_init.so -s libgazebo_ros_factory.so --ros-args -p publish_rate:=100.0"
+		ros_args="-s libgazebo_ros_init.so -s libgazebo_ros_factory.so --ros-args --params-file ./config.yaml"
 	else
 		ros_args=""
 	fi
 
 	echo "Starting gazebo server"
+	echo "gzserver ${verbose} ${world_path} ${ros_args}"
 	gzserver $verbose $world_path $ros_args &
 	SIM_PID=$!
 }
